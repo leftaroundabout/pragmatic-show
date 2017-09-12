@@ -1,5 +1,5 @@
 -- |
--- Module      : Text.Show.SanePrecision
+-- Module      : Text.Show.Pragmatic
 -- Copyright   : (c) Justus Sagemüller 2017
 -- License     : GPL v3
 -- 
@@ -10,7 +10,7 @@
 
 {-# LANGUAGE CPP #-}
 
-module Text.Show.SanePrecision where
+module Text.Show.Pragmatic where
 
 import Prelude hiding (Show(..), shows)
 import qualified Prelude
