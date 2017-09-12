@@ -431,6 +431,32 @@ instance Show Char where
                        (r,"'") -> (r++)
 
 
+instance Show Double where
+  showsPrec = ltdPrecShowsPrec 12
+
+ltdPrecShowsPrec :: (RealFloat n) => Int -> Int -> n -> ShowS
+ltdPrecShowsPrec _ _ 0 = ("0"++)
+ltdPrecShowsPrec precision p n
+    | not (n==n)  = ("NaN"++)
+    | n<0         = showParen (p>5) $ ('-':) . ltdPrecShowsPrec precision 0 (negate n)
+    | n==n*2      = ("Infinity"++)
+    | e₁₀<7 && lrDigs <= e₁₀
+                  = (rDigits++) . (replicate (e₁₀-lrDigs) '0' ++)
+    | e₁₀>0 && e₁₀<3
+                  = (take e₁₀ rDigits++) . ('.':) . (drop e₁₀ rDigits++)
+    | e₁₀> -2 && e₁₀<=0
+                  = ("0."++) . (replicate (negate e₁₀) '0'++) . (rDigits++)
+    | [hd] <- rDigits
+                  = (hd:) . ("e"++) . shows (e₁₀-1)
+    | (hd:qd@(_:_)) <- rDigits
+                  = (hd:) . ('.':) . (qd++) . ("e"++) . shows (e₁₀-1)
+   where e₁₀ = ceiling $ logBase 10 n
+         m₁₀Approx = round $ n * 10^^(precision - e₁₀) :: Int
+         (rApprZeroes, rDigits') = break (>'0') . reverse $ show m₁₀Approx
+         rDigits = reverse rDigits'
+         lrDigs = length rDigits
+         precision = 12 :: Int
+
 instance (Show a) => Show [a] where
   showsPrec _ = showList
 
