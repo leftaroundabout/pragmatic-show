@@ -8,6 +8,8 @@
 -- Portability : portable
 -- 
 
+{-# LANGUAGE CPP #-}
+
 module Text.Show.SanePrecision where
 
 import Prelude hiding (Show(..), shows)
@@ -25,3 +27,16 @@ class Show a where
 
 shows :: Show a => a -> ShowS
 shows = showsPrec 0
+
+#define StdShow(A)             \
+instance Show (A) where {       \
+  show = Prelude.show;           \
+  showsPrec = Prelude.showsPrec;  \
+  showList = Prelude.showList }
+
+StdShow(Int)
+StdShow(Integer)
+StdShow(Char)
+
+instance (Show a) => Show [a] where
+  showsPrec _ = showList
