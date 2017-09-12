@@ -8,7 +8,8 @@
 -- Portability : portable
 -- 
 
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE CPP        #-}
+{-# LANGUAGE LambdaCase #-}
 
 module Text.Show.Pragmatic where
 
@@ -36,7 +37,19 @@ instance Show (A) where {       \
 
 StdShow(Int)
 StdShow(Integer)
-StdShow(Char)
+
+instance Show Char where
+  show c | c>'\31', c/='\'', c/='\\'
+                      = '\'':c:"'"
+         | otherwise  = Prelude.show c
+  showList cs = ('"':) . flip (foldr showc) cs . ('"':)
+   where showc '"' = ("\\\""++)
+         showc '\\' = ("\\\\"++)
+         showc c | c>'\31'    = (c:)
+                 | otherwise  = ('\\':) . shows (fromEnum c) . \case
+                                  ζs@(ζ:_) | ζ`elem`['0'..'9'] -> "\\&"++ζs
+                                  ζs -> ζs
+         
 
 instance (Show a) => Show [a] where
   showsPrec _ = showList
