@@ -8,8 +8,7 @@
 -- Portability : portable
 -- 
 
-{-# LANGUAGE CPP        #-}
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE CPP #-}
 
 module Text.Show.Pragmatic where
 
@@ -46,9 +45,9 @@ instance Show Char where
    where showc '"' = ("\\\""++)
          showc '\\' = ("\\\\"++)
          showc c | c>'\31'    = (c:)
-                 | otherwise  = ('\\':) . shows (fromEnum c) . \case
-                                  ζs@(ζ:_) | ζ`elem`['0'..'9'] -> "\\&"++ζs
-                                  ζs -> ζs
+                 | otherwise  = case show c of
+                     ('\'':q) -> case break (=='\'') q of
+                       (r,"'") -> (r++)
          
 
 instance (Show a) => Show [a] where
