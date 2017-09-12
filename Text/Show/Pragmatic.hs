@@ -423,11 +423,13 @@ instance Show Char where
   showList cs = ('"':) . flip (foldr showc) cs . ('"':)
    where showc '"' = ("\\\""++)
          showc '\\' = ("\\\\"++)
+         showc '\SO' = ("\\SO\\&"++)  -- prevent problem with "\SO\&H"≈[14,72] getting
+                                      -- shown as "\SOH"≈[2]. (Thanks, QuickCheck!)
          showc c | c>'\31'    = (c:)
                  | otherwise  = case show c of
                      ('\'':q) -> case break (=='\'') q of
                        (r,"'") -> (r++)
-         
+
 
 instance (Show a) => Show [a] where
   showsPrec _ = showList
