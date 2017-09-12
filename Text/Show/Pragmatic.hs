@@ -52,3 +52,12 @@ instance Show Char where
 
 instance (Show a) => Show [a] where
   showsPrec _ = showList
+
+instance (Show a, Show b) => Show (a,b) where
+  showsPrec _ (a,b) = ('(':) . shows a . (',':) . shows b . (')':)
+instance (Show a, Show b, Show c) => Show (a,b,c) where
+  showsPrec _ (a,b,c) = ('(':) . shows a . (',':) . shows b . (',':) . shows c . (')':)
+instance (Show a, Show b, Show c, Show d) => Show (a,b,c,d) where
+  showsPrec _ (a,b,c,d) = ('(':)
+           . shows a . (',':) . shows b . (',':) . shows c . (',':) . shows d
+                        . (')':)

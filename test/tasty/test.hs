@@ -33,6 +33,9 @@ tests = testGroup "Tests"
    , testProperty "String vs standard instance"
       . QC.expectFailure -- we don't escape non-ASCII Unicode chars, unlike 'Prelude.show'.
        $ \s -> show s == Prelude.show (s :: String)
+   , testProperty "(Int,Integer)" $ readBackEq ([]::[(Int,Integer)])
+   , testProperty "(Int,Integer,(Char,[Int]),String)"
+         $ readBackEq ([]::[(Int,Integer,(Char,[Int]),String)])
    ]
   ]
  ]
