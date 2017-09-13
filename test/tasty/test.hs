@@ -7,6 +7,7 @@
 -- Stability   : experimental
 -- Portability : portable
 -- 
+{-# LANGUAGE FlexibleContexts       #-}
 
 module Main where
 
@@ -19,12 +20,13 @@ import qualified Prelude
 import Prelude hiding (Show(..))
 import Text.Show.Pragmatic
 
+import Data.VectorSpace
+
 
 main = defaultMain tests
 
 tests :: TestTree
 tests = testGroup "Tests"
- [ testGroup "Graph structure of webs"
   [ testGroup "Re-Reading of exact types"
    [ testProperty "Char" $ readBackEq ([]::[Char])
    , testProperty "Int" $ readBackEq ([]::[Int])
@@ -37,7 +39,6 @@ tests = testGroup "Tests"
    , testProperty "(Int,Integer,(Char,[Int]),String)"
          $ readBackEq ([]::[(Int,Integer,(Char,[Int]),String)])
    ]
-  ]
   , testGroup "Showing double-precision floats"
    [ floatTest pi "3.14159265359"
    , floatTest 32 "32"
@@ -56,10 +57,30 @@ tests = testGroup "Tests"
    , floatTest (1/0) "Infinity"
    , floatTest (sqrt $ -1) "NaN"
    ]
- ]
+  , testGroup "Re-Reading of approximate types"
+   [ testProperty "Double" $ readBackApproxEq ([]::[Double]) 1e-10
+   , testProperty "Double with higher-than-supported precision"
+          . QC.expectFailure
+           $ readBackApproxEq ([]::[Double]) 1e-14
+   , testProperty "Double²" $ readBackApproxEq ([]::[(Double,Double)]) 1e-10
+   ]
+  ]
 
+-- | Check that showing and reading again yields the original value.
 readBackEq :: (Show a, Read a, Eq a) => p a -> a -> Bool
 readBackEq _ x = read (show x) == x
+
+-- | Check that showing and reading again yields a value close to the original,
+--   and that read.show is a projection (i.e. will only perhaps round once, but
+--   if performed again not change anything further).
+readBackApproxEq :: (Show a, Read a, InnerSpace a, RealFloat (Scalar a))
+                       => p a -> Scalar a -> a -> Bool
+readBackApproxEq _ ε x
+  | m < 1e50   = magnitude (rs x ^-^ x) <= m*ε
+                  && magnitude (rs (rs x) ^-^ rs x) == 0
+  | otherwise  = True
+ where m = magnitude x
+       rs = read . show
 
 floatTest :: Double -> String -> TestTree
 floatTest n s = testCase s $ show n @?= s

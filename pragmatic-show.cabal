@@ -38,5 +38,6 @@ test-suite test
     , tasty >= 0.7
     , tasty-hunit
     , tasty-quickcheck
+    , vector-space
     , pragmatic-show
 
