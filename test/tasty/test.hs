@@ -63,6 +63,7 @@ tests = testGroup "Tests"
           . QC.expectFailure
            $ readBackApproxEq ([]::[Double]) 1e-14
    , testProperty "Double²" $ readBackApproxEq ([]::[(Double,Double)]) 1e-10
+   , testProperty "Float" $ readBackApproxEq ([]::[Float]) 1e-5
    ]
   ]
 

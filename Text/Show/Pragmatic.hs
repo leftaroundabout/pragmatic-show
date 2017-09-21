@@ -431,7 +431,16 @@ instance Show Char where
                        (r,"'") -> (r++)
 
 
+instance Show Float where
+  showsPrec = ltdPrecShowsPrec 7
+
 instance Show Double where
+  showsPrec = ltdPrecShowsPrec 12
+
+instance Show CFloat where
+  showsPrec = ltdPrecShowsPrec 7
+
+instance Show CDouble where
   showsPrec = ltdPrecShowsPrec 12
 
 ltdPrecShowsPrec :: (RealFloat n) => Int -> Int -> n -> ShowS
@@ -455,7 +464,6 @@ ltdPrecShowsPrec precision p n
          (rApprZeroes, rDigits') = break (>'0') . reverse $ show m₁₀Approx
          rDigits = reverse rDigits'
          lrDigs = length rDigits
-         precision = 12 :: Int
 
 instance (Show a) => Show [a] where
   showsPrec _ = showList
