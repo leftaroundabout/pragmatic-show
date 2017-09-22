@@ -135,7 +135,7 @@ import Data.Void
 --   fulfilled.
 --   
 --   Notably for floating-point values, we allow a slight deviation if
---   it considerable space in the shown representation: for example,
+--   it considerably shortens the shown representation: for example,
 --   @0.90000004 :: Float@, which can easily come up as
 --   the result of a computation which should in principle be exactly @0.9@, is shown
 --   as @0.9@ instead. We do however /not/ commit to any particular fixed precision;
