@@ -12,7 +12,7 @@ description:         The standard 'Show' class is handy for quickly viewing any 
 license:             GPL-3
 license-file:        LICENSE
 author:              Justus Sagemüller
-homepage:            https://github.com/leftaroundabout/number-show
+homepage:            https://github.com/leftaroundabout/pragmatic-show
 maintainer:          (@) jsagemue $ uni-koeln.de
 -- copyright:           
 category:            Text
