@@ -197,9 +197,6 @@ StdShow (())
 
 #if MIN_VERSION_base(4,10,0)
 StdShow (TyCon)
-#endif
-
-#if MIN_VERSION_base(4,9,0)
 StdShow (Module)
 #endif
 
