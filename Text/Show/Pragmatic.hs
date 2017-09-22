@@ -128,6 +128,19 @@ import Data.Void
 
 
 
+-- | A drop-in replacement for 'Prelude.Show'. The behaviour is mostly the same:
+--   the result of 'show' should be valid Haskell code, and 'read'ing back such a
+--   value should give the original value – but, unlike in 'Prelude.Show', we don't
+--   require this in an /exact/ sense, i.e. @'read' ('show' x) == x@ is not necessarily
+--   fulfilled.
+--   
+--   Notably for floating-point values, we allow a slight deviation if
+--   it considerable space in the shown representation: for example,
+--   @0.90000004 :: Float@, which can easily come up as
+--   the result of a computation which should in principle be exactly @0.9@, is shown
+--   as @0.9@ instead. We do however /not/ commit to any particular fixed precision;
+--   it depends on the type and the order of magnitude which amount of rounding is
+--   appropriate. See <https://github.com/leftaroundabout/pragmatic-show/blob/master/test/tasty/test.hs the test suite> for some examples.
 class Show a where
   {-# MINIMAL showsPrec | show #-}
   showsPrec :: Int -> a -> ShowS
@@ -435,14 +448,18 @@ instance Show Float where
   showsPrec = ltdPrecShowsPrec 7
 
 instance Show Double where
-  showsPrec = ltdPrecShowsPrec 12
+  showsPrec = ltdPrecShowsPrec 10
 
 instance Show CFloat where
-  showsPrec = ltdPrecShowsPrec 7
+  showsPrec = ltdPrecShowsPrec 5
 
 instance Show CDouble where
-  showsPrec = ltdPrecShowsPrec 12
+  showsPrec = ltdPrecShowsPrec 10
 
+-- | @'ltdPrecShowsPrec' prcn@ displays floating-point values with a precision
+--   of at least @prcn@ digits. That does not mean it will necessarily display
+--   that many digits, rather it tries to always choose the shortest representation
+--   with the required precision.
 ltdPrecShowsPrec :: (RealFloat n) => Int -> Int -> n -> ShowS
 ltdPrecShowsPrec _ _ 0 = ("0"++)
 ltdPrecShowsPrec precision p n
@@ -460,7 +477,7 @@ ltdPrecShowsPrec precision p n
     | (hd:qd@(_:_)) <- rDigits
                   = (hd:) . ('.':) . (qd++) . ("e"++) . shows (e₁₀-1)
    where e₁₀ = ceiling $ logBase 10 n
-         m₁₀Approx = round $ n * 10^^(precision - e₁₀) :: Int
+         m₁₀Approx = round $ n * 10^^(precision+2 - e₁₀) :: Int
          (rApprZeroes, rDigits') = break (>'0') . reverse $ show m₁₀Approx
          rDigits = reverse rDigits'
          lrDigs = length rDigits
