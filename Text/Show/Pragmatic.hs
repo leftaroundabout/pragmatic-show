@@ -111,9 +111,15 @@ import Data.Version (Version)
 #if MIN_VERSION_base(4,5,0)
 import Data.Version (Version)
 #endif
-#if MIN_VERSION_base(4,9,0)
+#if MIN_VERSION_base(4,10,0)
 import GHC.Stats (RTSStats)
-import GHC.RTS.Flags ( RTSFlags, ParFlags, TickyFlags, TraceFlags, DoTrace, ProfFlags
+#endif
+#if MIN_VERSION_base(4,9,0)
+import GHC.RTS.Flags ( RTSFlags
+#if MIN_VERSION_base(4,10,0)
+                     , ParFlags
+#endif
+                     , TickyFlags, TraceFlags, DoTrace, ProfFlags
                      , DoHeapProfile, CCFlags, DoCostCentres, DebugFlags, MiscFlags
                      , ConcFlags, GCFlags, GiveGCStats )
 #endif
@@ -392,10 +398,12 @@ StdShow (HandlePosn)
 StdShow (Version)
 #endif
 
-#if MIN_VERSION_base(4,9,0)
+#if MIN_VERSION_base(4,10,0)
 StdShow (RTSStats)
-StdShow (RTSFlags)
 StdShow (ParFlags)
+#endif
+#if MIN_VERSION_base(4,9,0)
+StdShow (RTSFlags)
 StdShow (TickyFlags)
 StdShow (TraceFlags)
 StdShow (DoTrace)
