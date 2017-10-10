@@ -40,7 +40,8 @@ tests = testGroup "Tests"
          $ readBackEq ([]::[(Int,Integer,(Char,[Int]),String)])
    ]
   , testGroup "Showing double-precision floats"
-   [ floatTest pi "3.14159265359"
+   [ floatTest 1 "1"
+   , floatTest pi "3.14159265359"
    , floatTest 32 "32"
    , floatTest (89.524 - 9.004) "80.52"
    , floatTest (0.3 + 0.3 + 0.3) "0.9"
