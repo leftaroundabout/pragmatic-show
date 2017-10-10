@@ -481,7 +481,7 @@ ltdPrecShowsPrec precision p n
                   = (hd:) . ("e"++) . shows (e₁₀-1)
     | (hd:qd@(_:_)) <- rDigits
                   = (hd:) . ('.':) . (qd++) . ("e"++) . shows (e₁₀-1)
-   where e₁₀ = ceiling $ logBase 10 n
+   where e₁₀ = ceiling $ logBase 10 n + 1e-9
          m₁₀Approx = round $ n * 10^^(precision+2 - e₁₀) :: Int
          (rApprZeroes, rDigits') = break (>'0') . reverse $ show m₁₀Approx
          rDigits = reverse rDigits'
