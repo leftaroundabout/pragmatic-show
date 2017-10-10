@@ -17,6 +17,7 @@ import qualified Prelude
 
 import Data.Int (Int8, Int16, Int32, Int64)
 import Data.Word (Word8, Word16, Word32, Word64)
+import Data.Ratio
 #if MIN_VERSION_base(4,8,0)
 import Numeric.Natural (Natural)
 #endif
@@ -501,6 +502,13 @@ instance (Show a, Show b, Show c, Show d) => Show (a,b,c,d) where
   showsPrec _ (a,b,c,d) = ('(':)
            . shows a . (',':) . shows b . (',':) . shows c . (',':) . shows d
                         . (')':)
+
+instance (Integral i, Show i) => Show (Ratio i) where
+  showsPrec p n
+   | n<0                 = showParen (p>5) $ ('-':) . showsPrec 6 (-n)
+   | denominator n == 1  = shows $ numerator n
+   | otherwise           = showParen (p>6) $ shows (numerator n)
+                                              . ('/':) . shows (denominator n)
 
 -- | Drop-in for the standard screen-displaying function. This is useful as a GHCi
 --   evaluation action; invoke with

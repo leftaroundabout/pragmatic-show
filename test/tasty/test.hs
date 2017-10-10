@@ -71,6 +71,14 @@ tests = testGroup "Tests"
    , testProperty "Double²" $ readBackApproxEq ([]::[(Double,Double)]) 1e-10
    , testProperty "Float" $ readBackApproxEq ([]::[Float]) 1e-5
    ]
+  , testGroup "Showing rational numbers"
+   [ rationalTest 0 "0"
+   , rationalTest 32 "32"
+   , rationalTest (3/2) "3/2"
+   , rationalTest (2/3) "2/3"
+   , rationalTest (-268/19) "-268/19"
+   , rationalTest (3/3) "1"
+   ]
   ]
 
 -- | Check that showing and reading again yields the original value.
@@ -91,3 +99,6 @@ readBackApproxEq _ ε x
 
 floatTest :: Double -> String -> TestTree
 floatTest n s = testCase s $ show n @?= s
+
+rationalTest :: Rational -> String -> TestTree
+rationalTest n s = testCase s $ show n @?= s
