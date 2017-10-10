@@ -501,3 +501,12 @@ instance (Show a, Show b, Show c, Show d) => Show (a,b,c,d) where
   showsPrec _ (a,b,c,d) = ('(':)
            . shows a . (',':) . shows b . (',':) . shows c . (',':) . shows d
                         . (')':)
+
+-- | Drop-in for the standard screen-displaying function. This is useful as a GHCi
+--   evaluation action; invoke with
+-- @
+-- $ ghci -interactive-print=Text.Show.Pragmatic.print
+-- @
+--   to get more concise output from the REPL.
+print :: Show a => a -> IO ()
+print = putStrLn . show
