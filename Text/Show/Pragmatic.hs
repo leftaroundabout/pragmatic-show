@@ -19,6 +19,7 @@ module Text.Show.Pragmatic (
 
 import Prelude hiding (Show(..), shows, print)
 import qualified Prelude
+import Data.Foldable (toList)
 
 import Data.Int (Int8, Int16, Int32, Int64)
 import Data.Word (Word8, Word16, Word32, Word64)
@@ -138,6 +139,13 @@ import Data.Data ( Fixity, ConstrRep, DataRep
 import Data.Void
 #endif
 
+import qualified Data.Set as Set
+import qualified Data.IntSet as ℤSet
+import qualified Data.Map as Map
+import qualified Data.IntMap as ℤMap
+import qualified Data.Sequence as Seq
+import qualified Data.Tree as Tree
+
 
 
 -- | A drop-in replacement for 'Prelude.Show'. The behaviour is mostly the same:
@@ -160,8 +168,11 @@ class Show a where
   show :: a -> String
   show = (`shows`"")
   showList :: [a] -> ShowS
-  showList [] = ("[]"++)
-  showList (x:xs) = ('[':) . shows x . flip (foldr (\y -> (',':) . shows y)) xs . (']':)
+  showList = defaultShowList
+
+defaultShowList :: Show a => [a] -> ShowS
+defaultShowList [] = ("[]"++)
+defaultShowList (x:xs) = ('[':) . shows x . flip (foldr (\y -> (',':) . shows y)) xs . (']':)
 
 shows :: Show a => a -> ShowS
 shows = showsPrec 0
@@ -498,6 +509,20 @@ ltdPrecShowsPrec precision p n
 
 instance (Show a) => Show [a] where
   showsPrec _ = showList
+
+instance (Show a, Ord a) => Show (Seq.Seq a) where
+  showsPrec _ = defaultShowList . toList
+instance (Show a, Ord a) => Show (Set.Set a) where
+  showsPrec _ = defaultShowList . Set.toList
+instance Show ℤSet.IntSet where
+  showsPrec _ = defaultShowList . ℤSet.toList
+instance (Show a, Ord a, Show b) => Show (Map.Map a b) where
+  showsPrec _ = defaultShowList . Map.toList
+instance (Show b) => Show (ℤMap.IntMap b) where
+  showsPrec _ = defaultShowList . ℤMap.toList
+instance (Show a) => Show (Tree.Tree a) where
+  showsPrec p (Tree.Node a st) = showParen (p>9)
+                $ ("Node "++) . showsPrec 11 a . (' ':) . shows st
 
 instance (Show a, Show b) => Show (a,b) where
   showsPrec _ (a,b) = ('(':) . shows a . (',':) . shows b . (')':)
