@@ -10,9 +10,14 @@
 
 {-# LANGUAGE CPP #-}
 
-module Text.Show.Pragmatic where
+module Text.Show.Pragmatic (
+       -- * Replacement for the standard class
+         Show(..), print
+       -- * Utility
+       , ltdPrecShowsPrec
+       ) where
 
-import Prelude hiding (Show(..), shows)
+import Prelude hiding (Show(..), shows, print)
 import qualified Prelude
 
 import Data.Int (Int8, Int16, Int32, Int64)
