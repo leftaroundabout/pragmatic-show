@@ -533,7 +533,7 @@ ltdPrecShowsPrec precision p n cont
              ++[ ( (/μ)
                  , 7, \s -> case s of
                         "1"   -> sμ ""
-                        "(-1)"-> showParen (p>7) (('-':) . sμ) ""
+                        "(-1)"-> showParen (p>=6) (('-':) . sμ) ""
                         _     -> showParen (p>7) ((s++) . ('*':) . sμ) ""
                  )
                | (μ,sμ) <- (pi, ("pi"++))
