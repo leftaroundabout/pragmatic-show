@@ -510,7 +510,20 @@ ltdPrecShowsPrec precision p n cont
     = minimumBy (comparing length)
         [ postProc $ ltdPrecShowsPrecDecimal precision p' (preProc n) ""
         | (preProc, p', postProc)
-            <- [(id, p, id)]
+            <- [ (id, p, id) ]
+             ++[ ( (/μ)
+                 , 7, \s -> case s of
+                        "1"   -> sμ ""
+                        "(-1)"-> showParen (p>7) (('-':) . sμ) ""
+                        _     -> showParen (p>7) ((s++) . ('*':) . sμ) ""
+                 )
+               | (μ,sμ) <- (pi, ("pi"++))
+                         : [ (sqrt $ fromIntegral n, ("sqrt "++) . shows n)
+                           | n<-[2,3,5 :: Int] ]
+               ]
+             ++[ ( (*fromIntegral n)
+                 , 7, \s -> showParen (p>7) ((s++) . ('/':) . shows n) "" )
+               | n<-[3,7,9 :: Int] ]
         ] ++ cont
 
 ltdPrecShowsPrecDecimal :: (RealFloat n) => Int -> Int -> n -> ShowS

@@ -43,9 +43,10 @@ tests = testGroup "Tests"
    [ floatTest 1 "1"
    , floatTest 10 "10"
    , floatTest 0.1 "0.1"
+   , floatTest (1/3) "1/3"
    , floatTest 1e9 "1e9"
    , floatTest 1e90 "1e90"
-   , floatTest pi "3.14159265359"
+   , floatTest pi "pi"
    , floatTest 32 "32"
    , floatTest (89.524 - 9.004) "80.52"
    , floatTest (0.3 + 0.3 + 0.3) "0.9"
@@ -65,15 +66,7 @@ tests = testGroup "Tests"
    , floatsTest [1,2,3] "[1,2,3]"
    , floatsTest (take 10 $ iterate (/16) 1)
        "[1,0.0625,3.90625e-3,2.44140625e-4,1.5258789e-5,9.53674e-7,5.9605e-8,3.725e-9,2.33e-10,1.5e-11]"
-   , floatsTest [1, -sqrt 2, sqrt (-2)] "[1,-1.41421356237,NaN]"
-   ]
-  , testGroup "Re-Reading of approximate types"
-   [ testProperty "Double" $ readBackApproxEq ([]::[Double]) 1e-10
-   , testProperty "Double with higher-than-supported precision"
-          . QC.expectFailure
-           $ readBackApproxEq ([]::[Double]) 1e-14
-   , testProperty "Double²" $ readBackApproxEq ([]::[(Double,Double)]) 1e-10
-   , testProperty "Float" $ readBackApproxEq ([]::[Float]) 1e-5
+   , floatsTest [1, -sqrt 2, sqrt (-2)] "[1,-sqrt 2,NaN]"
    ]
   , testGroup "Showing rational numbers"
    [ rationalTest 0 "0"
