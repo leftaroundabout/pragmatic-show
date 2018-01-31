@@ -8,8 +8,10 @@
 -- Portability : portable
 -- 
 
-{-# LANGUAGE CPP                 #-}
-{-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE CPP                  #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Text.Show.Pragmatic (
        -- * Replacement for the standard class
@@ -27,7 +29,7 @@ import Data.Ord (comparing)
 import Data.Int (Int8, Int16, Int32, Int64)
 import Data.Word (Word8, Word16, Word32, Word64)
 import Data.Ratio
-import Data.Complex (Complex((:+)))
+import Data.Complex (Complex((:+)), magnitude)
 #if MIN_VERSION_base(4,8,0)
 import Numeric.Natural (Natural)
 #endif
@@ -470,37 +472,52 @@ instance Show Char where
                        (r,"'") -> (r++)
 
 
+class Show a => ShowMagnitudeRangeLimited a where
+  showsPrecMagnitudeRangeLimited :: Int -> Int -> a -> ShowS
+
 instance Show Float where
   showsPrec = ltdPrecShowsPrec 7
-  showList = ltdPrecShowList 7
+  showList = ltdPrecShowList id 7
+instance ShowMagnitudeRangeLimited Float where
+  showsPrecMagnitudeRangeLimited = ltdPrecShowsPrec
 
 instance Show Double where
   showsPrec = ltdPrecShowsPrec 10
-  showList = ltdPrecShowList 10
+  showList = ltdPrecShowList id 10
+instance ShowMagnitudeRangeLimited Double where
+  showsPrecMagnitudeRangeLimited = ltdPrecShowsPrec
 
 instance Show CFloat where
   showsPrec = ltdPrecShowsPrec 5
-  showList = ltdPrecShowList 5
+  showList = ltdPrecShowList id 5
+instance ShowMagnitudeRangeLimited CFloat where
+  showsPrecMagnitudeRangeLimited = ltdPrecShowsPrec
 
 instance Show CDouble where
   showsPrec = ltdPrecShowsPrec 10
-  showList = ltdPrecShowList 10
+  showList = ltdPrecShowList id 10
+instance ShowMagnitudeRangeLimited CDouble where
+  showsPrecMagnitudeRangeLimited = ltdPrecShowsPrec
 
-ltdPrecShowList :: (RealFloat n) => Int -> [n] -> ShowS
-ltdPrecShowList precision vals
+ltdPrecShowList :: (ShowMagnitudeRangeLimited n, RealFloat sn)
+                   => (n -> sn) -> Int -> [n] -> ShowS
+ltdPrecShowList realise precision vals
           = ('[':) . flip (foldr id)
-                          (intersperse (',':) $ ltdPrecShowsPrec_par precision 0 vals)
+                          (intersperse (',':)
+                             $ ltdPrecShowsPrec_par realise precision 0 vals)
                    . (']':)
 
-ltdPrecShowsPrec_par :: (RealFloat n) => Int -> Int -> [n] -> [ShowS]
-ltdPrecShowsPrec_par precision p vals
-          = [ ltdPrecShowsPrec (max 0 $ precision - floor (maxUMag - uMagn)) p val
+ltdPrecShowsPrec_par :: (ShowMagnitudeRangeLimited n, RealFloat sn)
+              => (n -> sn) -> Int -> Int -> [n] -> [ShowS]
+ltdPrecShowsPrec_par realise precision p vals
+          = [ showsPrecMagnitudeRangeLimited
+                (max 0 $ precision - floor (maxUMag - uMagn)) p val
             | (val,uMagn) <- zip vals usableMagnitudes ]
  where usableMagnitude n
         | n<0            = usableMagnitude (-n)
         | n==n, 2*n>n    = logBase 10 n
         | otherwise      = -1/0
-       usableMagnitudes = usableMagnitude <$> vals
+       usableMagnitudes = (usableMagnitude . realise) <$> vals
        maxUMag = maximum usableMagnitudes
 
 -- | @'ltdPrecShowsPrec' prcn@ displays floating-point values with a precision
@@ -589,14 +606,21 @@ instance (Integral i, Show i) => Show (Ratio i) where
 
 instance Show (Complex Double) where
   showsPrec = ltdPrecShowsPrecComplex 10
+  showList = ltdPrecShowList magnitude 10
 instance Show (Complex Float) where
   showsPrec = ltdPrecShowsPrecComplex 7
-ltdPrecShowsPrecComplex :: RealFloat r => Int -> Int -> Complex r -> ShowS
+  showList = ltdPrecShowList magnitude 7
+instance (RealFloat a, Show (Complex a), ShowMagnitudeRangeLimited a)
+    => ShowMagnitudeRangeLimited (Complex a) where
+  showsPrecMagnitudeRangeLimited = ltdPrecShowsPrecComplex
+
+ltdPrecShowsPrecComplex :: (RealFloat r, ShowMagnitudeRangeLimited r)
+                           => Int -> Int -> Complex r -> ShowS
 ltdPrecShowsPrecComplex precision p (r:+i)
  | abs r > abs i * 10^precision
     = ltdPrecShowsPrec precision p r
  | otherwise
-    = case ($"")<$>ltdPrecShowsPrec_par precision 6 [r,i] of
+    = case ($"")<$>ltdPrecShowsPrec_par id precision 6 [r,i] of
            [sr,"0"] -> showParen (p>7) $ (sr++)
            [sr,si] -> showParen (p>6) $ (sr++) . (":+"++) . (si++)
 
