@@ -593,6 +593,9 @@ instance Show (Complex Float) where
   showsPrec = ltdPrecShowsPrecComplex 7
 ltdPrecShowsPrecComplex :: RealFloat r => Int -> Int -> Complex r -> ShowS
 ltdPrecShowsPrecComplex precision p (r:+i)
+ | abs r > abs i * 10^precision
+    = ltdPrecShowsPrec precision p r
+ | otherwise
     = case ($"")<$>ltdPrecShowsPrec_par precision 6 [r,i] of
            [sr,"0"] -> showParen (p>7) $ (sr++)
            [sr,si] -> showParen (p>6) $ (sr++) . (":+"++) . (si++)

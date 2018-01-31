@@ -80,7 +80,7 @@ tests = testGroup "Tests"
   , testGroup "Showing complex numbers"
    [ complexTest 1 "1"
    , complexTest (sqrt $ -1) "0:+1"
-   , complexTest (exp $ 0:+pi) "(-1):+1.2e-16"
+   , complexTest (exp $ 0:+pi) "-1"
    ]
   ]
 
