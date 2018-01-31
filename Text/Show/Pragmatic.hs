@@ -20,7 +20,8 @@ module Text.Show.Pragmatic (
 import Prelude hiding (Show(..), shows, print)
 import qualified Prelude
 import Data.Foldable (toList)
-import Data.List (intersperse)
+import Data.List (intersperse, minimumBy)
+import Data.Ord (comparing)
 
 import Data.Int (Int8, Int16, Int32, Int64)
 import Data.Word (Word8, Word16, Word32, Word64)
@@ -505,10 +506,19 @@ ltdPrecShowsPrec_par precision p vals
 --   that many digits, rather it tries to always choose the shortest representation
 --   with the required precision.
 ltdPrecShowsPrec :: (RealFloat n) => Int -> Int -> n -> ShowS
-ltdPrecShowsPrec _ _ 0 = ("0"++)
-ltdPrecShowsPrec precision p n
+ltdPrecShowsPrec precision p n cont
+    = minimumBy (comparing length)
+        [ postProc $ ltdPrecShowsPrecDecimal precision p' (preProc n) ""
+        | (preProc, p', postProc)
+            <- [(id, p, id)]
+        ] ++ cont
+
+ltdPrecShowsPrecDecimal :: (RealFloat n) => Int -> Int -> n -> ShowS
+ltdPrecShowsPrecDecimal _ _ 0 = ("0"++)
+ltdPrecShowsPrecDecimal precision p n
     | not (n==n)  = ("NaN"++)
-    | n<0         = showParen (p>5) $ ('-':) . ltdPrecShowsPrec precision 0 (negate n)
+    | n<0         = showParen (p>5)
+                      $ ('-':) . ltdPrecShowsPrecDecimal precision 0 (negate n)
     | n==n*2      = ("Infinity"++)
     | e₁₀<7 && lrDigs <= e₁₀
                   = (rDigits++) . (replicate (e₁₀-lrDigs) '0' ++)
