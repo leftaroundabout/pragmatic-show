@@ -537,8 +537,14 @@ ltdPrecShowsPrec precision p n cont
                         _     -> showParen (p>7) ((s++) . ('*':) . sμ) ""
                  )
                | (μ,sμ) <- (pi, ("pi"++))
-                         : [ (sqrt $ fromIntegral n, ("sqrt "++) . shows n)
+                          :[ (pi / fromIntegral m, ("pi/"++) . shows m)
+                           | m<-[2,3,4 :: Int] ]
+                         ++[ (sqrt $ fromIntegral n, ("sqrt "++) . shows n)
                            | n<-[2,3,5 :: Int] ]
+                         ++[ ( sqrt (fromIntegral n)/fromIntegral m
+                             , ("sqrt "++) . shows n . ('/':) . shows m)
+                           | n<-[2,3 :: Int]
+                           , m<-[2,3 :: Int] ]
                ]
              ++[ ( (*fromIntegral n)
                  , 7, \s -> showParen (p>7) ((s++) . ('/':) . shows n) "" )

@@ -81,7 +81,7 @@ tests = testGroup "Tests"
    [ complexTest 1 "1"
    , complexTest (sqrt $ -1) "0:+1"
    , complexTest (exp $ 0:+pi) "-1"
-   , complexTest (exp $ 0:+pi/4) "0.5*sqrt 2:+0.5*sqrt 2"
+   , complexTest (exp $ 0:+pi/4) "sqrt 2/2:+sqrt 2/2"
    ]
   ]
 
