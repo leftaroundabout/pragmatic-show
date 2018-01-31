@@ -62,6 +62,10 @@ tests = testGroup "Tests"
    , floatTest 7e35 "7e35"
    , floatTest (1/0) "Infinity"
    , floatTest (sqrt $ -1) "NaN"
+   , floatsTest [1,2,3] "[1,2,3]"
+   , floatsTest (take 10 $ iterate (/16) 1)
+       "[1,0.0625,3.90625e-3,2.44140625e-4,1.5258789e-5,9.53674e-7,5.9605e-8,3.725e-9,2.33e-10,1.5e-11]"
+   , floatsTest [1, -sqrt 2, sqrt (-2)] "[1,-1.41421356237,NaN]"
    ]
   , testGroup "Re-Reading of approximate types"
    [ testProperty "Double" $ readBackApproxEq ([]::[Double]) 1e-10
@@ -99,6 +103,9 @@ readBackApproxEq _ ε x
 
 floatTest :: Double -> String -> TestTree
 floatTest n s = testCase s $ show n @?= s
+
+floatsTest :: [Double] -> String -> TestTree
+floatsTest n s = testCase s $ show n @?= s
 
 rationalTest :: Rational -> String -> TestTree
 rationalTest n s = testCase s $ show n @?= s

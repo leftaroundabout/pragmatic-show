@@ -20,6 +20,7 @@ module Text.Show.Pragmatic (
 import Prelude hiding (Show(..), shows, print)
 import qualified Prelude
 import Data.Foldable (toList)
+import Data.List (intersperse)
 
 import Data.Int (Int8, Int16, Int32, Int64)
 import Data.Word (Word8, Word16, Word32, Word64)
@@ -468,15 +469,36 @@ instance Show Char where
 
 instance Show Float where
   showsPrec = ltdPrecShowsPrec 7
+  showList = ltdPrecShowList 7
 
 instance Show Double where
   showsPrec = ltdPrecShowsPrec 10
+  showList = ltdPrecShowList 10
 
 instance Show CFloat where
   showsPrec = ltdPrecShowsPrec 5
+  showList = ltdPrecShowList 5
 
 instance Show CDouble where
   showsPrec = ltdPrecShowsPrec 10
+  showList = ltdPrecShowList 10
+
+ltdPrecShowList :: (RealFloat n) => Int -> [n] -> ShowS
+ltdPrecShowList precision vals
+          = ('[':) . flip (foldr id)
+                          (intersperse (',':) $ ltdPrecShowsPrec_par precision 0 vals)
+                   . (']':)
+
+ltdPrecShowsPrec_par :: (RealFloat n) => Int -> Int -> [n] -> [ShowS]
+ltdPrecShowsPrec_par precision p vals
+          = [ ltdPrecShowsPrec (max 0 $ precision - floor (maxUMag - uMagn)) p val
+            | (val,uMagn) <- zip vals usableMagnitudes ]
+ where usableMagnitude n
+        | n<0            = usableMagnitude (-n)
+        | n==n, 2*n>n    = logBase 10 n
+        | otherwise      = -1/0
+       usableMagnitudes = usableMagnitude <$> vals
+       maxUMag = maximum usableMagnitudes
 
 -- | @'ltdPrecShowsPrec' prcn@ displays floating-point values with a precision
 --   of at least @prcn@ digits. That does not mean it will necessarily display
