@@ -20,6 +20,7 @@ import qualified Prelude
 import Prelude hiding (Show(..))
 import Text.Show.Pragmatic
 
+import Data.Complex (Complex((:+)))
 import Data.VectorSpace
 
 
@@ -76,6 +77,11 @@ tests = testGroup "Tests"
    , rationalTest (-268/19) "-268/19"
    , rationalTest (3/3) "1"
    ]
+  , testGroup "Showing complex numbers"
+   [ complexTest 1 "1"
+   , complexTest (sqrt $ -1) "0:+1"
+   , complexTest (exp $ 0:+pi) "(-1):+1.2e-16"
+   ]
   ]
 
 -- | Check that showing and reading again yields the original value.
@@ -96,6 +102,9 @@ readBackApproxEq _ ε x
 
 floatTest :: Double -> String -> TestTree
 floatTest n s = testCase s $ show n @?= s
+
+complexTest :: Complex Double -> String -> TestTree
+complexTest n s = testCase s $ show n @?= s
 
 floatsTest :: [Double] -> String -> TestTree
 floatsTest n s = testCase s $ show n @?= s

@@ -8,7 +8,8 @@
 -- Portability : portable
 -- 
 
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE CPP                 #-}
+{-# LANGUAGE FlexibleInstances   #-}
 
 module Text.Show.Pragmatic (
        -- * Replacement for the standard class
@@ -26,6 +27,7 @@ import Data.Ord (comparing)
 import Data.Int (Int8, Int16, Int32, Int64)
 import Data.Word (Word8, Word16, Word32, Word64)
 import Data.Ratio
+import Data.Complex (Complex((:+)))
 #if MIN_VERSION_base(4,8,0)
 import Numeric.Natural (Natural)
 #endif
@@ -584,6 +586,16 @@ instance (Integral i, Show i) => Show (Ratio i) where
    | denominator n == 1  = shows $ numerator n
    | otherwise           = showParen (p>6) $ shows (numerator n)
                                               . ('/':) . shows (denominator n)
+
+instance Show (Complex Double) where
+  showsPrec = ltdPrecShowsPrecComplex 10
+instance Show (Complex Float) where
+  showsPrec = ltdPrecShowsPrecComplex 7
+ltdPrecShowsPrecComplex :: RealFloat r => Int -> Int -> Complex r -> ShowS
+ltdPrecShowsPrecComplex precision p (r:+i)
+    = case ($"")<$>ltdPrecShowsPrec_par precision 6 [r,i] of
+           [sr,"0"] -> showParen (p>7) $ (sr++)
+           [sr,si] -> showParen (p>6) $ (sr++) . (":+"++) . (si++)
 
 -- | Drop-in for the standard screen-displaying function. This is useful as a GHCi
 --   evaluation action; invoke with
