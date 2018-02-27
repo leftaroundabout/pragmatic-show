@@ -18,6 +18,8 @@ module Text.Show.Pragmatic (
          Show(..), print
        -- * Utility
        , ltdPrecShowsPrec
+       , showsPrecWithSharedPrecision
+       , ShowMagnitudeRangeLimited(..)
        ) where
 
 import Prelude hiding (Show(..), shows, print)
@@ -504,21 +506,29 @@ ltdPrecShowList :: (ShowMagnitudeRangeLimited n, RealFloat sn)
 ltdPrecShowList realise precision vals
           = ('[':) . flip (foldr id)
                           (intersperse (',':)
-                             $ ltdPrecShowsPrec_par realise precision 0 vals)
+                             $ showsPrecWithSharedPrecision realise precision 0 vals)
                    . (']':)
 
-ltdPrecShowsPrec_par :: (ShowMagnitudeRangeLimited n, RealFloat sn)
-              => (n -> sn) -> Int -> Int -> [n] -> [ShowS]
-ltdPrecShowsPrec_par realise precision p vals
-          = [ showsPrecMagnitudeRangeLimited
-                (max 0 $ precision - floor (maxUMag - uMagn)) p val
-            | (val,uMagn) <- zip vals usableMagnitudes ]
+showsPrecWithSharedPrecision :: (ShowMagnitudeRangeLimited n, RealFloat sn, Traversable list)
+              => (n -> sn)   -- ^ Magnitude-function. Should be a norm.
+              -> Int         -- ^ Precision of the type, in significant decimals. This will
+                             --   be used to trim the length of all entries to match the
+                             --   expected numerical uncertainty of the biggest one.
+              -> Int         -- ^ Precedence of the enclosing context in which the values
+                             --   are to be shown.
+              -> list n      -- ^ Values to show
+              -> list ShowS  -- ^ Individual values' string representation.
+showsPrecWithSharedPrecision realise precision p vals
+     = fmap (\val ->
+              let uMagn = usableMagnitude $ realise val
+              in showsPrecMagnitudeRangeLimited
+                   (max 0 $ precision - floor (maxUMag - uMagn)) p val
+            ) vals
  where usableMagnitude n
         | n<0            = usableMagnitude (-n)
         | n==n, 2*n>n    = logBase 10 n
         | otherwise      = -1/0
-       usableMagnitudes = (usableMagnitude . realise) <$> vals
-       maxUMag = maximum usableMagnitudes
+       maxUMag = maximum $ usableMagnitude . realise <$> vals
 
 -- | @'ltdPrecShowsPrec' prcn@ displays floating-point values with a precision
 --   of at least @prcn@ digits. That does not mean it will necessarily display
@@ -626,7 +636,7 @@ ltdPrecShowsPrecComplex precision p (r:+i)
  | abs r > abs i * 10^precision
     = ltdPrecShowsPrec precision p r
  | otherwise
-    = case ($"")<$>ltdPrecShowsPrec_par id precision 6 [r,i] of
+    = case ($"")<$>showsPrecWithSharedPrecision id precision 6 [r,i] of
            [sr,"0"] -> showParen (p>7) $ (sr++)
            [sr,si] -> showParen (p>6) $ (sr++) . (":+"++) . (si++)
 
