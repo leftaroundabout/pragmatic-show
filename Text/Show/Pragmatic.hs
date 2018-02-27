@@ -16,7 +16,7 @@
 module Text.Show.Pragmatic (
        -- * Replacement for the standard class
          Show(..), print
-       -- * Utility
+       -- * Utility (unstable)
        , ltdPrecShowsPrec
        , showsPrecWithSharedPrecision
        , ShowMagnitudeRangeLimited(..)
