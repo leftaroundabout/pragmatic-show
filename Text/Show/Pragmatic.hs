@@ -13,6 +13,8 @@
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE UndecidableInstances #-}
 
+#include "HsBaseConfig.h"
+
 module Text.Show.Pragmatic (
        -- * Replacement for the standard class
          Show(..), print
@@ -107,7 +109,13 @@ import GHC.StaticPtr (StaticPtrInfo)
 #endif
 import System.Posix.Types ( Fd
 #if MIN_VERSION_base(4,10,0)
-                          , CTimer, CKey, CId, CFsFilCnt, CFsBlkCnt, CClockId
+#if defined(HTYPE_TIMER_T)
+                          , CTimer
+#endif
+                          , CKey, CId, CFsFilCnt, CFsBlkCnt
+#if defined(HTYPE_CLOCKID_T)
+                          , CClockId
+#endif
                           , CBlkCnt, CBlkSize
 #endif
                           , CRLim, CTcflag, CSpeed, CCc, CUid
@@ -191,271 +199,275 @@ instance Show (A) where {       \
   showsPrec = Prelude.showsPrec;  \
   showList = Prelude.showList }
 
-StdShow (Bool)
-StdShow (Int)
-StdShow (Int8)
-StdShow (Int16)
-StdShow (Int32)
-StdShow (Int64)
-StdShow (Integer)
+StdShow(Bool)
+StdShow(Int)
+StdShow(Int8)
+StdShow(Int16)
+StdShow(Int32)
+StdShow(Int64)
+StdShow(Integer)
 
 #if MIN_VERSION_base(4,8,0)
-StdShow (Natural)
+StdShow(Natural)
 #endif
 
-StdShow (Ordering)
-StdShow (Word)
-StdShow (Word8)
-StdShow (Word16)
-StdShow (Word32)
-StdShow (Word64)
+StdShow(Ordering)
+StdShow(Word)
+StdShow(Word8)
+StdShow(Word16)
+StdShow(Word32)
+StdShow(Word64)
 
 #if MIN_VERSION_base(4,9,0)
-StdShow (CallStack)
+StdShow(CallStack)
 #endif
 
 #if MIN_VERSION_base(4,10,0)
-StdShow (SomeTypeRep)
+StdShow(SomeTypeRep)
 #endif
 
-StdShow (())
+StdShow(())
 
 #if MIN_VERSION_base(4,10,0)
-StdShow (TyCon)
-StdShow (Module)
+StdShow(TyCon)
+StdShow(Module)
 #endif
 
 #if MIN_VERSION_base(4,9,0)
-StdShow (SrcLoc)
+StdShow(SrcLoc)
 #endif
 
 #if MIN_VERSION_base(3,0,0)
-StdShow (SomeException)
+StdShow(SomeException)
 #endif
 
-StdShow (GeneralCategory)
-StdShow (Number)
-StdShow (Lexeme)
+StdShow(GeneralCategory)
+StdShow(Number)
+StdShow(Lexeme)
 
 #if MIN_VERSION_base(4,7,0)
-StdShow (Fingerprint)
+StdShow(Fingerprint)
 #endif
 
-StdShow (IOMode)
-StdShow (IntPtr)
-StdShow (WordPtr)
-StdShow (CUIntMax)
-StdShow (CIntMax)
-StdShow (CUIntPtr)
-StdShow (CIntPtr)
-StdShow (CSUSeconds)
-StdShow (CUSeconds)
-StdShow (CTime)
-StdShow (CClock)
-StdShow (CSigAtomic)
-StdShow (CWchar)
-StdShow (CSize)
-StdShow (CPtrdiff)
+StdShow(IOMode)
+StdShow(IntPtr)
+StdShow(WordPtr)
+StdShow(CUIntMax)
+StdShow(CIntMax)
+StdShow(CUIntPtr)
+StdShow(CIntPtr)
+StdShow(CSUSeconds)
+StdShow(CUSeconds)
+StdShow(CTime)
+StdShow(CClock)
+StdShow(CSigAtomic)
+StdShow(CWchar)
+StdShow(CSize)
+StdShow(CPtrdiff)
 
 #if MIN_VERSION_base(4,10,0)
-StdShow (CBool)
+StdShow(CBool)
 #endif
 
-StdShow (CULLong)
-StdShow (CLLong)
-StdShow (CULong)
-StdShow (CLong)
-StdShow (CUInt)
-StdShow (CInt)
-StdShow (CUShort)
-StdShow (CShort)
-StdShow (CUChar)
-StdShow (CSChar)
-StdShow (CChar)
+StdShow(CULLong)
+StdShow(CLLong)
+StdShow(CULong)
+StdShow(CLong)
+StdShow(CUInt)
+StdShow(CInt)
+StdShow(CUShort)
+StdShow(CShort)
+StdShow(CUChar)
+StdShow(CSChar)
+StdShow(CChar)
 
 #if MIN_VERSION_base(4,10,0)
-StdShow (SomeNat)
-StdShow (SomeSymbol)
+StdShow(SomeNat)
+StdShow(SomeSymbol)
 #endif
 
 #if MIN_VERSION_base(4,9,0)
-StdShow (DecidedStrictness)
-StdShow (SourceStrictness)
-StdShow (SourceUnpackedness)
-StdShow (Associativity)
-StdShow (GHC.Generics.Fixity)
+StdShow(DecidedStrictness)
+StdShow(SourceStrictness)
+StdShow(SourceUnpackedness)
+StdShow(Associativity)
+StdShow(GHC.Generics.Fixity)
 #endif
 
-StdShow (Any)
-StdShow (All)
+StdShow(Any)
+StdShow(All)
 
 #if MIN_VERSION_base(4,0,0)
-StdShow (ArithException)
-StdShow (ErrorCall)
+StdShow(ArithException)
+StdShow(ErrorCall)
 #endif
 
 #if MIN_VERSION_base(4,1,0)
-StdShow (IOException)
+StdShow(IOException)
 #endif
 
-StdShow (MaskingState)
+StdShow(MaskingState)
 
 #if MIN_VERSION_base(4,4,0)
-StdShow (CodingProgress)
+StdShow(CodingProgress)
 #endif
 
 #if MIN_VERSION_base(4,3,0)
-StdShow (TextEncoding)
+StdShow(TextEncoding)
 #endif
 
-StdShow (SeekMode)
-StdShow (NewlineMode)
-StdShow (Newline)
-StdShow (BufferMode)
+StdShow(SeekMode)
+StdShow(NewlineMode)
+StdShow(Newline)
+StdShow(BufferMode)
 
 #if MIN_VERSION_base(4,1,0)
-StdShow (Handle)
-StdShow (IOErrorType)
+StdShow(Handle)
+StdShow(IOErrorType)
 #endif
 
-StdShow (ExitCode)
+StdShow(ExitCode)
 
 #if MIN_VERSION_base(4,1,0)
-StdShow (ArrayException)
-StdShow (AsyncException)
+StdShow(ArrayException)
+StdShow(AsyncException)
 #endif
 
 #if MIN_VERSION_base(4,7,0)
-StdShow (SomeAsyncException)
+StdShow(SomeAsyncException)
 #endif
 
 #if MIN_VERSION_base(4,1,0)
-StdShow (AssertionFailed)
+StdShow(AssertionFailed)
 #endif
 
 #if MIN_VERSION_base(4,10,0)
-StdShow (CompactionFailed)
+StdShow(CompactionFailed)
 #endif
 
 #if MIN_VERSION_base(4,7,1)
-StdShow (AllocationLimitExceeded)
+StdShow(AllocationLimitExceeded)
 #endif
 
 #if MIN_VERSION_base(4,1,0)
-StdShow (Deadlock)
-StdShow (BlockedIndefinitelyOnSTM)
-StdShow (BlockedIndefinitelyOnMVar)
-StdShow (CodingFailureMode)
+StdShow(Deadlock)
+StdShow(BlockedIndefinitelyOnSTM)
+StdShow(BlockedIndefinitelyOnMVar)
+StdShow(CodingFailureMode)
 #endif
 
-StdShow (Fd)
+StdShow(Fd)
 
 #if MIN_VERSION_base(4,10,0)
-StdShow (CTimer)
-StdShow (CKey)
-StdShow (CId)
-StdShow (CFsFilCnt)
-StdShow (CFsBlkCnt)
-StdShow (CClockId)
-StdShow (CBlkCnt)
-StdShow (CBlkSize)
+#if defined(HTYPE_TIMER_T)
+StdShow(CTimer)
 #endif
-StdShow (CRLim)
-StdShow (CTcflag)
-StdShow (CSpeed)
-StdShow (CCc)
-StdShow (CUid)
-StdShow (CNlink)
-StdShow (CGid)
-StdShow (CSsize)
-StdShow (CPid)
-StdShow (COff)
-StdShow (CMode)
-StdShow (CIno)
-StdShow (CDev)
+StdShow(CKey)
+StdShow(CId)
+StdShow(CFsFilCnt)
+StdShow(CFsBlkCnt)
+#if defined(HTYPE_CLOCKID_T)
+StdShow(CClockId)
+#endif
+StdShow(CBlkCnt)
+StdShow(CBlkSize)
+#endif
+StdShow(CRLim)
+StdShow(CTcflag)
+StdShow(CSpeed)
+StdShow(CCc)
+StdShow(CUid)
+StdShow(CNlink)
+StdShow(CGid)
+StdShow(CSsize)
+StdShow(CPid)
+StdShow(COff)
+StdShow(CMode)
+StdShow(CIno)
+StdShow(CDev)
 
 #if MIN_VERSION_base(4,8,1)
-StdShow (Lifetime)
-StdShow (Event)
+StdShow(Lifetime)
+StdShow(Event)
 #endif
 
 #if MIN_VERSION_base(2,1,0)
-StdShow (Dynamic)
+StdShow(Dynamic)
 #endif
 
-StdShow (ThreadStatus)
-StdShow (BlockReason)
+StdShow(ThreadStatus)
+StdShow(BlockReason)
 
 #if MIN_VERSION_base(4,2,0)
-StdShow (ThreadId)
+StdShow(ThreadId)
 #endif
 
 #if MIN_VERSION_base(4,0,0)
-StdShow (NestedAtomically)
-StdShow (NonTermination)
+StdShow(NestedAtomically)
+StdShow(NonTermination)
 #endif
 
 #if MIN_VERSION_base(4,9,0)
-StdShow (TypeError)
+StdShow(TypeError)
 #endif
 
 #if MIN_VERSION_base(4,0,0)
-StdShow (NoMethodError)
-StdShow (RecUpdError)
-StdShow (RecConError)
-StdShow (RecSelError)
-StdShow (PatternMatchFail)
+StdShow(NoMethodError)
+StdShow(RecUpdError)
+StdShow(RecConError)
+StdShow(RecSelError)
+StdShow(PatternMatchFail)
 #endif
 
-StdShow (FdKey)
+StdShow(FdKey)
 #if MIN_VERSION_base(4,10,0)
-StdShow (FileLockingNotSupported)
+StdShow(FileLockingNotSupported)
 #endif
 
 #if MIN_VERSION_base(4,1,0)
-StdShow (HandlePosn)
+StdShow(HandlePosn)
 #endif
 
 #if MIN_VERSION_base(4,8,0)
-StdShow (Version)
+StdShow(Version)
 #endif
 
 #if MIN_VERSION_base(4,10,0)
-StdShow (RTSStats)
-StdShow (ParFlags)
+StdShow(RTSStats)
+StdShow(ParFlags)
 #endif
 #if MIN_VERSION_base(4,9,0)
-StdShow (RTSFlags)
-StdShow (TickyFlags)
-StdShow (TraceFlags)
-StdShow (DoTrace)
-StdShow (ProfFlags)
-StdShow (DoHeapProfile)
-StdShow (CCFlags)
-StdShow (DoCostCentres)
-StdShow (DebugFlags)
-StdShow (MiscFlags)
-StdShow (ConcFlags)
-StdShow (GCFlags)
-StdShow (GiveGCStats)
+StdShow(RTSFlags)
+StdShow(TickyFlags)
+StdShow(TraceFlags)
+StdShow(DoTrace)
+StdShow(ProfFlags)
+StdShow(DoHeapProfile)
+StdShow(CCFlags)
+StdShow(DoCostCentres)
+StdShow(DebugFlags)
+StdShow(MiscFlags)
+StdShow(ConcFlags)
+StdShow(GCFlags)
+StdShow(GiveGCStats)
 #endif
 
-StdShow (Data.Data.Fixity)
-StdShow (ConstrRep)
-StdShow (DataRep)
+StdShow(Data.Data.Fixity)
+StdShow(ConstrRep)
+StdShow(DataRep)
 
 #if MIN_VERSION_base(4,0,0)
-StdShow (Constr)
+StdShow(Constr)
 #endif
 
-StdShow (DataType)
+StdShow(DataType)
 
 #if MIN_VERSION_base(4,9,0)
-StdShow (StaticPtrInfo)
+StdShow(StaticPtrInfo)
 #endif
 
 #if MIN_VERSION_base(4,8,0)
-StdShow (Void)
+StdShow(Void)
 #endif
 
 
