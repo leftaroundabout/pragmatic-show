@@ -13,6 +13,8 @@
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE UndecidableInstances #-}
 
+#include "HsBaseConfig.h"
+
 module Text.Show.Pragmatic (
        -- * Replacement for the standard class
          Show(..), print
@@ -107,7 +109,13 @@ import GHC.StaticPtr (StaticPtrInfo)
 #endif
 import System.Posix.Types ( Fd
 #if MIN_VERSION_base(4,10,0)
-                          , CTimer, CKey, CId, CFsFilCnt, CFsBlkCnt, CClockId
+#if defined(HTYPE_TIMER_T)
+                          , CTimer
+#endif
+                          , CKey, CId, CFsFilCnt, CFsBlkCnt
+#if defined(HTYPE_CLOCKID_T)
+                          , CClockId
+#endif
                           , CBlkCnt, CBlkSize
 #endif
                           , CRLim, CTcflag, CSpeed, CCc, CUid
@@ -351,12 +359,16 @@ StdShow(CodingFailureMode)
 StdShow(Fd)
 
 #if MIN_VERSION_base(4,10,0)
+#if defined(HTYPE_TIMER_T)
 StdShow(CTimer)
+#endif
 StdShow(CKey)
 StdShow(CId)
 StdShow(CFsFilCnt)
 StdShow(CFsBlkCnt)
+#if defined(HTYPE_CLOCKID_T)
 StdShow(CClockId)
+#endif
 StdShow(CBlkCnt)
 StdShow(CBlkSize)
 #endif
