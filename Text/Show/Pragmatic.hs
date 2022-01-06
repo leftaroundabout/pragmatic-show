@@ -107,22 +107,6 @@ import GHC.IO.Handle.Lock (FileLockingNotSupported)
 #if MIN_VERSION_base(4,9,0)
 import GHC.StaticPtr (StaticPtrInfo)
 #endif
-import System.Posix.Types ( Fd
-#if MIN_VERSION_base(4,10,0)
-#if defined(HTYPE_TIMER_T)
-                          , CTimer
-#endif
-                          , CKey, CId, CFsFilCnt, CFsBlkCnt
-#if defined(HTYPE_CLOCKID_T)
-                          , CClockId
-#endif
-                          , CBlkCnt, CBlkSize
-#endif
-                          , CRLim, CTcflag, CSpeed, CCc, CUid
-                          , CNlink, CGid, CSsize, CPid, COff, CMode, CIno, CDev )
-#if MIN_VERSION_base(4,8,1)
-import GHC.Event (Lifetime, Event, FdKey)
-#endif
 #if MIN_VERSION_base(2,1,0)
 import Data.Dynamic (Dynamic)
 #endif
@@ -356,41 +340,6 @@ StdShow(BlockedIndefinitelyOnMVar)
 StdShow(CodingFailureMode)
 #endif
 
-StdShow(Fd)
-
-#if MIN_VERSION_base(4,10,0)
-#if defined(HTYPE_TIMER_T)
-StdShow(CTimer)
-#endif
-StdShow(CKey)
-StdShow(CId)
-StdShow(CFsFilCnt)
-StdShow(CFsBlkCnt)
-#if defined(HTYPE_CLOCKID_T)
-StdShow(CClockId)
-#endif
-StdShow(CBlkCnt)
-StdShow(CBlkSize)
-#endif
-StdShow(CRLim)
-StdShow(CTcflag)
-StdShow(CSpeed)
-StdShow(CCc)
-StdShow(CUid)
-StdShow(CNlink)
-StdShow(CGid)
-StdShow(CSsize)
-StdShow(CPid)
-StdShow(COff)
-StdShow(CMode)
-StdShow(CIno)
-StdShow(CDev)
-
-#if MIN_VERSION_base(4,8,1)
-StdShow(Lifetime)
-StdShow(Event)
-#endif
-
 #if MIN_VERSION_base(2,1,0)
 StdShow(Dynamic)
 #endif
@@ -419,7 +368,6 @@ StdShow(RecSelError)
 StdShow(PatternMatchFail)
 #endif
 
-StdShow(FdKey)
 #if MIN_VERSION_base(4,10,0)
 StdShow(FileLockingNotSupported)
 #endif
