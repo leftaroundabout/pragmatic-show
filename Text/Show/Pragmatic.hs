@@ -12,6 +12,10 @@
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE GADTs                #-}
+{-# LANGUAGE DeriveFunctor        #-}
+{-# LANGUAGE DeriveFoldable       #-}
+{-# LANGUAGE DeriveTraversable    #-}
 
 #include "HsBaseConfig.h"
 
@@ -627,14 +631,59 @@ instance (Show a) => Show (Tree.Tree a) where
   showsPrec p (Tree.Node a st) = showParen (p>9)
                 $ ("Node "++) . showsPrec 11 a . (' ':) . shows st
 
+data TraverseFirst t b a where
+  TraverseFirst :: { firstTraversed :: t (a,b) } -> TraverseFirst t b a
+ deriving (Functor, Foldable, Traversable)
+
+data TraverseSecond t a b where
+  TraverseSecond :: { secondTraversed :: t (a,b) } -> TraverseSecond t a b
+ deriving (Functor, Foldable, Traversable)
+
 instance (Show a, Show b) => Show (a,b) where
-  showsPrec _ (a,b) = ('(':) . shows a . (',':) . shows b . (')':)
+  showEach _ = fmap (\(sa,sb) -> ('(':) . sa . (',':) . sb . (')':))
+             .  firstTraversed . showEach 0 . TraverseFirst
+             . secondTraversed . showEach 0 . TraverseSecond
+
+data TraverseFirstOf3 t b c a where
+  TraverseFirstOf3 :: { firstOf3Traversed :: t (a,b,c) } -> TraverseFirstOf3 t b c a
+ deriving (Functor, Foldable, Traversable)
+
+data TraverseSecondOf3 t a c b where
+  TraverseSecondOf3 :: { secondOf3Traversed :: t (a,b,c) } -> TraverseSecondOf3 t a c b
+ deriving (Functor, Foldable, Traversable)
+
+data TraverseThird t a b c where
+  TraverseThird :: { thirdTraversed :: t (a,b,c) } -> TraverseThird t a b c
+ deriving (Functor, Foldable, Traversable)
+
 instance (Show a, Show b, Show c) => Show (a,b,c) where
-  showsPrec _ (a,b,c) = ('(':) . shows a . (',':) . shows b . (',':) . shows c . (')':)
+  showEach _ = fmap (\(sa,sb,sc) -> ('(':) . sa . (',':) . sb . (',':) . sc . (')':))
+             .  firstOf3Traversed . showEach 0 . TraverseFirstOf3
+             . secondOf3Traversed . showEach 0 . TraverseSecondOf3
+             .     thirdTraversed . showEach 0 . TraverseThird
+
+data TraverseFirstOf4 t b c d a where
+  TraverseFirstOf4 :: { firstOf4Traversed :: t (a,b,c,d) } -> TraverseFirstOf4 t b c d a
+ deriving (Functor, Foldable, Traversable)
+
+data TraverseSecondOf4 t a c d b where
+  TraverseSecondOf4 :: { secondOf4Traversed :: t (a,b,c,d) } -> TraverseSecondOf4 t a c d b
+ deriving (Functor, Foldable, Traversable)
+
+data TraverseThirdOf4 t a b d c where
+  TraverseThirdOf4 :: { thirdOf4Traversed :: t (a,b,c,d) } -> TraverseThirdOf4 t a b d c
+ deriving (Functor, Foldable, Traversable)
+
+data TraverseFourth t a b c d where
+  TraverseFourth :: { fourthTraversed :: t (a,b,c,d) } -> TraverseFourth t a b c d
+ deriving (Functor, Foldable, Traversable)
+
 instance (Show a, Show b, Show c, Show d) => Show (a,b,c,d) where
-  showsPrec _ (a,b,c,d) = ('(':)
-           . shows a . (',':) . shows b . (',':) . shows c . (',':) . shows d
-                        . (')':)
+  showEach _ = fmap (\(sa,sb,sc,sd) -> ('(':).sa.(',':).sb.(',':).sc.(',':).sd.(')':))
+             .  firstOf4Traversed . showEach 0 . TraverseFirstOf4
+             . secondOf4Traversed . showEach 0 . TraverseSecondOf4
+             .  thirdOf4Traversed . showEach 0 . TraverseThirdOf4
+             .    fourthTraversed . showEach 0 . TraverseFourth
 
 instance (Integral i, Show i) => Show (Ratio i) where
   showsPrec p n
