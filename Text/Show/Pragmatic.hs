@@ -179,20 +179,31 @@ import Data.Functor.Identity (Identity(..))
 --   it depends on the type and the order of magnitude which amount of rounding is
 --   appropriate. See <https://github.com/leftaroundabout/pragmatic-show/blob/master/test/tasty/test.hs the test suite> for some examples.
 class Show a where
-  {-# MINIMAL showsPrec | show #-}
+  {-# MINIMAL showsPrec | show | showEach #-}
   showsPrec :: Int -> a -> ShowS
   showsPrec _ x = (show x++)
   show :: a -> String
   show = (`shows`"")
+  showEach :: Traversable t => Int     -- ^ Precedence to use for showing each individual element
+                            -> t a     -- ^ List or other container of elements
+                            -> t ShowS -- ^ Every element in the container shown, possibly with
+                                       --   shared processing like trimmed insignificant decimals
+  showEach = defaultShowEach
   showList :: [a] -> ShowS
   showList = defaultShowList
 
+defaultAssembleListShow :: [ShowS] -> ShowS
+defaultAssembleListShow [] = ("[]"++)
+defaultAssembleListShow (x:xs) = ('[':) . x . flip (foldr (\y -> (',':) . y)) xs . (']':)
+
 defaultShowList :: Show a => [a] -> ShowS
-defaultShowList [] = ("[]"++)
-defaultShowList (x:xs) = ('[':) . shows x . flip (foldr (\y -> (',':) . shows y)) xs . (']':)
+defaultShowList = defaultAssembleListShow . showEach 0
+
+defaultShowEach :: (Show a, Traversable t) => Int -> t a -> t ShowS
+defaultShowEach p = fmap $ showsPrec p
 
 shows :: Show a => a -> ShowS
-shows = showsPrec 0
+shows = runIdentity . showEach 0 . Identity
 
 #define StdShow(A)             \
 instance Show (A) where {       \
