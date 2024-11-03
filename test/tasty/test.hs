@@ -39,6 +39,9 @@ tests = testGroup "Tests"
    , testProperty "(Int,Integer)" $ readBackEq ([]::[(Int,Integer)])
    , testProperty "(Int,Integer,(Char,[Int]),String)"
          $ readBackEq ([]::[(Int,Integer,(Char,[Int]),String)])
+   , testProperty "[(Int,Bool)]" $ readBackEq ([]::[ [(Int,Bool)] ])
+   , testProperty "([(Char,Int,Char)],[(Int,Char,Int,Char)])"
+         $ readBackEq ([]::[ ([(Char,Int,Char)],[(Int,Char,Int,Char)]) ])
    ]
   , testGroup "Showing double-precision floats"
    [ floatTest 1 "1"
@@ -84,6 +87,11 @@ tests = testGroup "Tests"
    , complexTest (exp $ 0:+pi/4) "sqrt 2/2:+sqrt 2/2"
    , complexTest (exp $ 0:+5*pi/4) "(-sqrt 2/2):+(-sqrt 2/2)"
    ]
+  , testGroup "Showing tuples and lists of tuples"
+   [ floatTupleTest (1.001e-3, 1e40) "(1.001e-3,1e40)"
+   , floatTuplesTest [ (1.001e-3,1e40),(3e-3,1.001) ]
+                     "[(1.001e-3,1e40),(3e-3,1)]"
+   ]
   ]
 
 -- | Check that showing and reading again yields the original value.
@@ -110,6 +118,12 @@ complexTest n s = testCase s $ show n @?= s
 
 floatsTest :: [Double] -> String -> TestTree
 floatsTest n s = testCase s $ show n @?= s
+
+floatTupleTest :: (Double,Double) -> String -> TestTree
+floatTupleTest n s = testCase s $ show n @?= s
+
+floatTuplesTest :: [(Double,Double)] -> String -> TestTree
+floatTuplesTest n s = testCase s $ show n @?= s
 
 rationalTest :: Rational -> String -> TestTree
 rationalTest n s = testCase s $ show n @?= s
