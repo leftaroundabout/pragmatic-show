@@ -589,7 +589,7 @@ ltdPrecShowsPrecDecimal precision p n
                       $ ('-':) . ltdPrecShowsPrecDecimal precision 0 (negate n)
     | n==n*2      = ("Infinity"++)
     | e₁₀<7 && lrDigs <= e₁₀
-                  = (rDigits++) . (replicate (e₁₀-lrDigs) '0' ++)
+                  = shows (round n :: Int)
     | e₁₀>0 && e₁₀<3
                   = (take e₁₀ rDigits++) . ('.':) . (drop e₁₀ rDigits++)
     | e₁₀> -2 && e₁₀<=0
