@@ -656,7 +656,7 @@ ltdPrecShowsPrecComplex precision p (r:+i)
  | abs r > abs i * 10^precision
     = ltdPrecShowsPrec precision p r
  | otherwise
-    = case ($"")<$>showsPrecWithSharedPrecision id precision 6 [r,i] of
+    = case ($ "")<$>showsPrecWithSharedPrecision id precision 6 [r,i] of
            [sr,"0"] -> showParen (p>7) $ (sr++)
            [sr,si] -> showParen (p>6) $ (sr++) . (":+"++) . (si++)
 
