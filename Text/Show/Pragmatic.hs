@@ -503,35 +503,27 @@ class Show a => ShowMagnitudeRangeLimited a where
 
 instance Show Float where
   showsPrec = ltdPrecShowsPrec 7
-  showList = ltdPrecShowList id 7
+  showEach = showsPrecWithSharedPrecision id 7
 instance ShowMagnitudeRangeLimited Float where
   showsPrecMagnitudeRangeLimited = ltdPrecShowsPrec
 
 instance Show Double where
   showsPrec = ltdPrecShowsPrec 10
-  showList = ltdPrecShowList id 10
+  showEach = showsPrecWithSharedPrecision id 10
 instance ShowMagnitudeRangeLimited Double where
   showsPrecMagnitudeRangeLimited = ltdPrecShowsPrec
 
 instance Show CFloat where
   showsPrec = ltdPrecShowsPrec 5
-  showList = ltdPrecShowList id 5
+  showEach = showsPrecWithSharedPrecision id 5
 instance ShowMagnitudeRangeLimited CFloat where
   showsPrecMagnitudeRangeLimited = ltdPrecShowsPrec
 
 instance Show CDouble where
   showsPrec = ltdPrecShowsPrec 10
-  showList = ltdPrecShowList id 10
+  showEach = showsPrecWithSharedPrecision id 10
 instance ShowMagnitudeRangeLimited CDouble where
   showsPrecMagnitudeRangeLimited = ltdPrecShowsPrec
-
-ltdPrecShowList :: (ShowMagnitudeRangeLimited n, RealFloat sn)
-                   => (n -> sn) -> Int -> [n] -> ShowS
-ltdPrecShowList realise precision vals
-          = ('[':) . flip (foldr id)
-                          (intersperse (',':)
-                             $ showsPrecWithSharedPrecision realise precision 0 vals)
-                   . (']':)
 
 showsPrecWithSharedPrecision :: (ShowMagnitudeRangeLimited n, RealFloat sn, Traversable list)
               => (n -> sn)   -- ^ Magnitude-function. Should be a norm.
@@ -653,10 +645,10 @@ instance (Integral i, Show i) => Show (Ratio i) where
 
 instance Show (Complex Double) where
   showsPrec = ltdPrecShowsPrecComplex 10
-  showList = ltdPrecShowList magnitude 10
+  showEach = showsPrecWithSharedPrecision magnitude 10
 instance Show (Complex Float) where
   showsPrec = ltdPrecShowsPrecComplex 7
-  showList = ltdPrecShowList magnitude 7
+  showEach = showsPrecWithSharedPrecision magnitude 7
 instance (RealFloat a, Show (Complex a), ShowMagnitudeRangeLimited a)
     => ShowMagnitudeRangeLimited (Complex a) where
   showsPrecMagnitudeRangeLimited = ltdPrecShowsPrecComplex
