@@ -71,6 +71,9 @@ tests = testGroup "Tests"
    , floatsTest (take 10 $ iterate (/16) 1)
        "[1,0.0625,3.90625e-3,2.44140625e-4,1.5258789e-5,9.53674e-7,5.9605e-8,3.725e-9,2.33e-10,1.5e-11]"
    , floatsTest [1, -sqrt 2, sqrt (-2)] "[1,-sqrt 2,NaN]"
+   , floatsTest [pi**k | k <- [1, 4 .. 30]]
+       "[pi,97,3020,93648,2.904e6,9.0032e7,2.791564e9,8.6556004e10,2.683779414e12,8.3214007069e13,2.58015652686e15]"
+ -- now: pi,97,3000,94000,2.904e6,9.0032e7,...
    ]
   , testGroup "Showing rational numbers"
    [ rationalTest 0 "0"
