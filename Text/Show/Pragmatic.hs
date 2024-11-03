@@ -161,6 +161,7 @@ import qualified Data.Map as Map
 import qualified Data.IntMap as ℤMap
 import qualified Data.Sequence as Seq
 import qualified Data.Tree as Tree
+import Data.Functor.Identity (Identity(..))
 
 
 
@@ -598,6 +599,13 @@ ltdPrecShowsPrecDecimal precision p n
          (rApprZeroes, rDigits') = break (>'0') . reverse $ m₁₀Approx
          rDigits = reverse rDigits'
          lrDigs = length rDigits
+
+instance (Show a) => Show (Identity a) where
+  showsPrec p (Identity x) = showParen (p>9) $ ("Identity "++) . showsPrec 11 x
+
+instance (Show a) => Show (Maybe a) where
+  showsPrec _ Nothing = ("Nothing"++)
+  showsPrec p (Just x) = showParen (p>9) $ ("Just "++) . showsPrec 11 x
 
 instance (Show a) => Show [a] where
   showsPrec _ = showList
