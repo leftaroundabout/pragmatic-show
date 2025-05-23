@@ -503,7 +503,11 @@ instance Show Char where
 
 
 class Show a => ShowMagnitudeRangeLimited a where
-  showsPrecMagnitudeRangeLimited :: Int -> Int -> a -> ShowS
+  showsPrecMagnitudeRangeLimited
+          :: Int     -- ^ Precision of the data type
+          -> Int     -- ^ Precedence of the showing context
+          -> a       -- ^ Numerical value to show
+          -> ShowS
 
 instance Show Float where
   showsPrec = ltdPrecShowsPrec 7
@@ -554,7 +558,11 @@ showsPrecWithSharedPrecision realise precision p vals
 --   of at least @prcn@ digits. That does not mean it will necessarily display
 --   that many digits, rather it tries to always choose the shortest representation
 --   with the required precision.
-ltdPrecShowsPrec :: (RealFloat n) => Int -> Int -> n -> ShowS
+ltdPrecShowsPrec :: (RealFloat n)
+          => Int     -- ^ Precision of the data type
+          -> Int     -- ^ Precedence of the showing context
+          -> n       -- ^ Numerical value to show
+          -> ShowS
 ltdPrecShowsPrec precision p n cont
     = minimumBy (comparing length)
         [ postProc $ ltdPrecShowsPrecDecimal precision p' (preProc n) ""
