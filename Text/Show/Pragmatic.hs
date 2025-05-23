@@ -12,6 +12,8 @@
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE ScopedTypeVariables  #-}
+{-# LANGUAGE UnicodeSyntax        #-}
 {-# LANGUAGE GADTs                #-}
 {-# LANGUAGE DeriveFunctor        #-}
 {-# LANGUAGE DeriveFoldable       #-}
@@ -26,6 +28,7 @@ module Text.Show.Pragmatic (
        , ltdPrecShowsPrec
        , showsPrecWithSharedPrecision
        , ShowMagnitudeRangeLimited(..)
+       , PaddingMode(..)
        ) where
 
 import Prelude hiding (Show(..), shows, print)
@@ -168,6 +171,10 @@ import qualified Data.Tree as Tree
 import Data.Functor.Identity (Identity(..))
 
 
+data PaddingMode = NoPadding
+                 | PadLeftToAlign
+                 | PadRightToAlign
+                 | PadToConstantWidth
 
 -- | A drop-in replacement for 'Prelude.Show'. The behaviour is mostly the same:
 --   the result of 'show' should be valid Haskell code, and 'read'ing back such a
@@ -188,10 +195,12 @@ class Show a where
   showsPrec _ x = (show x++)
   show :: a -> String
   show = (`shows`"")
-  showEach :: Traversable t => Int     -- ^ Precedence to use for showing each individual element
-                            -> t a     -- ^ List or other container of elements
-                            -> t ShowS -- ^ Every element in the container shown, possibly with
-                                       --   shared processing like trimmed insignificant decimals
+  showEach :: Traversable t
+                => PaddingMode -- ^ Whether / how to ensure that e.g. decimal points line up.
+                -> Int         -- ^ Precedence to use for showing each individual element
+                -> t a         -- ^ List or other container of elements
+                -> t ShowS     -- ^ Every element in the container shown, possibly with
+                               --   shared processing like trimmed insignificant decimals
   showEach = defaultShowEach
   showList :: [a] -> ShowS
   showList = defaultShowList
@@ -201,13 +210,17 @@ defaultAssembleListShow [] = ("[]"++)
 defaultAssembleListShow (x:xs) = ('[':) . x . flip (foldr (\y -> (',':) . y)) xs . (']':)
 
 defaultShowList :: Show a => [a] -> ShowS
-defaultShowList = defaultAssembleListShow . showEach 0
+defaultShowList = defaultAssembleListShow . showEach NoPadding 0
 
-defaultShowEach :: (Show a, Traversable t) => Int -> t a -> t ShowS
-defaultShowEach p = fmap $ showsPrec p
+defaultShowEach :: (Show a, Traversable t) => PaddingMode -> Int -> t a -> t ShowS
+defaultShowEach PadToConstantWidth p l
+          = fmap (\r c -> r <> replicate (totalWidth - length r) ' ' <> c) shown
+ where totalWidth = maximum $ length<$>shown
+       shown = fmap (($ "") . showsPrec p) l
+defaultShowEach _ p l = fmap (showsPrec p) l
 
 shows :: Show a => a -> ShowS
-shows = runIdentity . showEach 0 . Identity
+shows = runIdentity . showEach NoPadding 0 . Identity
 
 #define StdShow(A)             \
 instance Show (A) where {       \
@@ -533,26 +546,57 @@ instance Show CDouble where
 instance ShowMagnitudeRangeLimited CDouble where
   showsPrecMagnitudeRangeLimited = ltdPrecShowsPrec
 
-showsPrecWithSharedPrecision :: (ShowMagnitudeRangeLimited n, RealFloat sn, Traversable list)
+showsPrecWithSharedPrecision :: ∀ n list sn . (ShowMagnitudeRangeLimited n, RealFloat sn, Traversable list)
               => (n -> sn)   -- ^ Magnitude-function. Should be a norm.
               -> Int         -- ^ Precision of the type, in significant decimals. This will
                              --   be used to trim the length of all entries to match the
                              --   expected numerical uncertainty of the biggest one.
+              -> PaddingMode -- ^ What to do to align decimal points
               -> Int         -- ^ Precedence of the enclosing context in which the values
                              --   are to be shown.
               -> list n      -- ^ Values to show
               -> list ShowS  -- ^ Individual values' string representation.
-showsPrecWithSharedPrecision realise precision p vals
-     = fmap (\val ->
-              let uMagn = usableMagnitude $ realise val
-              in showsPrecMagnitudeRangeLimited
-                   (max 0 $ precision - floor (maxUMag - uMagn)) p val
+showsPrecWithSharedPrecision magnitudeFn precision padMode p vals
+        = (case padMode of
+            PadToConstantWidth -> \strn -> 
+                  let lenStrn = length strn
+                  in (replicate (longestPaddedValLength - lenStrn) ' '++) . (strn++)
+            _ -> (++)
+           ) <$> paddedShownVals
+ where shownVals :: list (n, String)
+       shownVals = fmap (\val ->
+              let uMagn = usableMagnitude $ magnitudeFn val
+              in (val, showsPrecMagnitudeRangeLimited
+                   (max 0 $ precision - floor (maxUMag - uMagn)) p val "")
             ) vals
- where usableMagnitude n
+       usableMagnitude n
         | n<0            = usableMagnitude (-n)
         | n==n, 2*n>n    = logBase 10 n
-        | otherwise      = -1/0
-       maxUMag = maximum $ usableMagnitude . realise <$> vals
+        | otherwise      = -1/0    -- NaN or infinite values are disregarded
+       maxUMag = maximum $ usableMagnitude . magnitudeFn <$> vals
+       leftmostCharacterMagnitude :: (n, String) -> Int
+       leftmostCharacterMagnitude (_, "0") = 0
+       leftmostCharacterMagnitude (n, ('-':strn))
+                     = 1 + leftmostCharacterMagnitude (n, dropWhile (=='-') strn)
+       leftmostCharacterMagnitude (n, '.':strn)
+                     = leftmostCharacterMagnitude (n, strn)
+       leftmostCharacterMagnitude (n, '0':strn)
+                     = 1 + leftmostCharacterMagnitude (n, strn)
+       leftmostCharacterMagnitude (n, strn) = floor (usableMagnitude $ magnitudeFn n)
+       leftmostColumnMagnitude, rightmostColumnMagnitude :: Int
+       leftmostColumnMagnitude = maximum $ leftmostCharacterMagnitude <$> shownVals
+       rightmostColumnMagnitude = leftmostColumnMagnitude - maximum (length . snd <$> shownVals)
+       administerPadding :: (n, String) -> String
+       administerPadding (n,strn) = case padMode of
+          NoPadding -> strn
+          PadLeftToAlign -> replicate (leftmostColumnMagnitude - lchm) ' ' ++ strn
+          _ -> strn ++ replicate (rchm - rightmostColumnMagnitude) ' '
+        where lchm, rchm :: Int
+              lchm = leftmostCharacterMagnitude (n, strn)
+              rchm = lchm - length strn
+       paddedShownVals :: list String
+       paddedShownVals = administerPadding <$> shownVals
+       longestPaddedValLength = maximum $ length <$>paddedShownVals
 
 -- | @'ltdPrecShowsPrec' prcn@ displays floating-point values with a precision
 --   of at least @prcn@ digits. That does not mean it will necessarily display
@@ -648,9 +692,10 @@ data TraverseSecond t a b where
  deriving (Functor, Foldable, Traversable)
 
 instance (Show a, Show b) => Show (a,b) where
-  showEach _ = fmap (\(sa,sb) -> ('(':) . sa . (',':) . sb . (')':))
-             .  firstTraversed . showEach 0 . TraverseFirst
-             . secondTraversed . showEach 0 . TraverseSecond
+  showEach padMode _
+         = fmap (\(sa,sb) -> ('(':) . sa . (',':) . sb . (')':))
+             .  firstTraversed . showEach padMode 0 . TraverseFirst
+             . secondTraversed . showEach padMode 0 . TraverseSecond
 
 data TraverseFirstOf3 t b c a where
   TraverseFirstOf3 :: { firstOf3Traversed :: t (a,b,c) } -> TraverseFirstOf3 t b c a
@@ -665,10 +710,11 @@ data TraverseThird t a b c where
  deriving (Functor, Foldable, Traversable)
 
 instance (Show a, Show b, Show c) => Show (a,b,c) where
-  showEach _ = fmap (\(sa,sb,sc) -> ('(':) . sa . (',':) . sb . (',':) . sc . (')':))
-             .  firstOf3Traversed . showEach 0 . TraverseFirstOf3
-             . secondOf3Traversed . showEach 0 . TraverseSecondOf3
-             .     thirdTraversed . showEach 0 . TraverseThird
+  showEach padMode _
+       = fmap (\(sa,sb,sc) -> ('(':) . sa . (',':) . sb . (',':) . sc . (')':))
+             .  firstOf3Traversed . showEach padMode 0 . TraverseFirstOf3
+             . secondOf3Traversed . showEach padMode 0 . TraverseSecondOf3
+             .     thirdTraversed . showEach padMode 0 . TraverseThird
 
 data TraverseFirstOf4 t b c d a where
   TraverseFirstOf4 :: { firstOf4Traversed :: t (a,b,c,d) } -> TraverseFirstOf4 t b c d a
@@ -687,11 +733,12 @@ data TraverseFourth t a b c d where
  deriving (Functor, Foldable, Traversable)
 
 instance (Show a, Show b, Show c, Show d) => Show (a,b,c,d) where
-  showEach _ = fmap (\(sa,sb,sc,sd) -> ('(':).sa.(',':).sb.(',':).sc.(',':).sd.(')':))
-             .  firstOf4Traversed . showEach 0 . TraverseFirstOf4
-             . secondOf4Traversed . showEach 0 . TraverseSecondOf4
-             .  thirdOf4Traversed . showEach 0 . TraverseThirdOf4
-             .    fourthTraversed . showEach 0 . TraverseFourth
+  showEach padMode _
+       = fmap (\(sa,sb,sc,sd) -> ('(':).sa.(',':).sb.(',':).sc.(',':).sd.(')':))
+             .  firstOf4Traversed . showEach padMode 0 . TraverseFirstOf4
+             . secondOf4Traversed . showEach padMode 0 . TraverseSecondOf4
+             .  thirdOf4Traversed . showEach padMode 0 . TraverseThirdOf4
+             .    fourthTraversed . showEach padMode 0 . TraverseFourth
 
 instance (Integral i, Show i) => Show (Ratio i) where
   showsPrec p n
@@ -716,7 +763,7 @@ ltdPrecShowsPrecComplex precision p (r:+i)
  | abs r > abs i * 10^precision
     = ltdPrecShowsPrec precision p r
  | otherwise
-    = case ($ "")<$>showsPrecWithSharedPrecision id precision 6 [r,i] of
+    = case ($ "")<$>showsPrecWithSharedPrecision id precision NoPadding 6 [r,i] of
            [sr,"0"] -> showParen (p>7) $ (sr++)
            [sr,si] -> showParen (p>6) $ (sr++) . (":+"++) . (si++)
 
