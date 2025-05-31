@@ -16,7 +16,7 @@ license:             GPL-3
 license-file:        LICENSE
 author:              Justus Sagemüller
 homepage:            https://github.com/leftaroundabout/pragmatic-show
-maintainer:          (@) jsag $ kth.se
+maintainer:          (@) justussa $ kth.se
 -- copyright:           
 category:            Text
 build-type:          Simple
