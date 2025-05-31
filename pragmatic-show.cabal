@@ -8,12 +8,15 @@ description:         The standard 'Show' class is handy for quickly viewing any 
                      values without having to think about formatting. However, it often
                      produces needlessly clunky string representations, which are difficult
                      to parse by eye. This package offers a drop-in replacement which
-                     attempts to keep the representation as short as possible.
+                     attempts to keep the representation as readable as possible.
+                     It does this through more graphical layout, omission of redundant
+                     information, and (still quite conservative) trimming of low-significance
+                     digits.
 license:             GPL-3
 license-file:        LICENSE
 author:              Justus Sagemüller
 homepage:            https://github.com/leftaroundabout/pragmatic-show
-maintainer:          (@) jsag $ hvl.no
+maintainer:          (@) jsag $ kth.se
 -- copyright:           
 category:            Text
 build-type:          Simple
